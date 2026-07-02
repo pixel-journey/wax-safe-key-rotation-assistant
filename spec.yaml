@@ -1,54 +1,78 @@
 blueprint:
   id: wax-safe-key-rotation-assistant
+  name: Safe Key Rotation Assistant
   tier: 1
   category: security-foundational
   status: alpha-ready
-  benchmark_target: gkniftyheads-tracker + PX
-  companion: wax-permission-visualizer-and-editor
+  version: 0.2
+
+metadata:
+  description: |
+    A guided, ultra-safe key rotation wizard for changing owner and active keys
+    on WAX/Antelope accounts. Crystal-clear previews, powerful safety warnings,
+    explicit owner/active asymmetry handling, multi-sig requirement checking,
+    and direct WharfKit signing — all client-side.
+  target_audience:
+    - Human developers and users performing key rotations
+    - AI agents generating safe key management flows
+    - Teams prioritizing long-term account safety on WAX/Antelope
+  related_blueprints:
+    - wax-permission-visualizer-and-editor
+    - wax-multi-sig-proposal-builder-and-simulator
+    - wax-secure-key-management-and-privacy-tools
 
 features:
-  - guided_5_step_wizard
+  - guided_stepper_wizard
   - live_before_after_permission_preview
-  - contextual_safety_warnings (12+ rules)
+  - contextual_safety_warnings
   - multi_sig_requirement_checker
   - owner_active_asymmetry_enforcement
-  - optional_wharfkit_signing
-  - retro_pixel_glassmorphic_crt_theme
-  - educational_step_by_step_flow
+  - wharfkit_direct_signing
+  - multiple_integration_levels
 
-recommended_stack:
-  framework: Next.js 15 App Router
-  language: TypeScript strict
-  preview: embedded PermissionTree (from companion)
-  safety: pure_client_js + 12+ rule engine
-  state: zustand + url_params
-  signing: wharfkit_session (optional)
+integration_levels:
+  minimal:
+    description: Basic key input form + simple warnings
+    recommended_for: Learning and simple rotations
+  recommended:
+    description: Full guided wizard + live preview + strong safety checks + WharfKit
+    recommended_for: Most production and user-facing tools
+  advanced:
+    description: Advanced simulation, multi-sig handling, recovery planning tools
+    recommended_for: High-security or complex account management
 
-integration_points:
-  - PxWallet: direct key rotation flow from account view
-  - Permission Visualizer: seamless handoff (visualize → rotate)
-  - Multi-sig tools: requirement checking for complex DAOs
-  - entropy: ready for future weighted key generation simulations
+machine_instructions:
+  - |
+    Create multi-step wizard with live permission preview using PermissionTree patterns.
+  - |
+    Implement strong contextual safety warnings and validation rules (12+ rules).
+  - |
+    Add multi-sig requirement display and strict owner/active asymmetry enforcement.
+  - |
+    Integrate optional WharfKit signing with clear transaction summary.
+  - |
+    Support multiple integration levels with progressive safety depth.
+  - |
+    Prioritize clarity, safety, and calm communication in all flows.
 
-machine_instructions_for_ai_devs:
-  - "Create 5-step guided wizard with live side-by-side permission preview"
-  - "Implement 12+ safety validation rules including owner/active asymmetry"
-  - "Add multi-sig requirement display and clear signing instructions"
-  - "Reuse PermissionTree visual component from companion repo"
-  - "Add strong contextual warnings with risk levels (safe/warning/danger)"
+technical_requirements:
+  framework: Next.js 15 + TypeScript (strict)
+  styling: Tailwind + shadcn/ui + framer-motion
+  visualization: Embedded PermissionTree + diff views
+  safety: Pure client-side JavaScript validator
+  signing: WharfKit (optional)
+  design_system: pixel-journey-design-system
 
-pros_cons_variations:
-  wizard_style:
-    - option: "multi_step_with_live_preview"
-      pros: ["educational", "clear mental model", "high safety"]
-      cons: ["more steps than power users want"]
-    - option: "single long form"
-      pros: ["faster for experts"]
-      cons: ["less guidance", "higher error rate for new users"]
+best_practices:
+  - Always show clear previews before any key change
+  - Use strong, contextual warnings (not just generic alerts)
+  - Explicitly enforce owner/active asymmetry rules
+  - Check multi-sig requirements before allowing rotation
+  - Provide calm, actionable guidance throughout
+  - Support both simple and advanced use cases
 
-security_critical_rules:
-  - owner_can_change_active
-  - active_cannot_change_owner
-  - multi_sig_threshold_must_be_met_by_current_permission
-  - last_owner_key_removal_is_dangerous
-  - threshold_must_remain_satisfiable_after_change
+future_extensions:
+  - Advanced recovery planning tools
+  - Hardware wallet integration patterns
+  - Social recovery mechanisms
+  - Batch key management for multiple accounts
