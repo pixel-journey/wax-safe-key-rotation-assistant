@@ -1,41 +1,52 @@
 # wax-safe-key-rotation-assistant — Safe Key Rotation Assistant
 
-> **Status:** ✅ **FULL PX PERFECTION (Alpha-Ready)** | Public Release Target: July 2026  
+> **Status:** 🔄 In Active Deep Refinement (PX Perfection Standard)  
 > **Category:** Authentication, Multi-Sig & Permission Management (Core Antelope/EOSIO)  
 > **Parent Catalog:** [pixel-journey/wax-ecosystem-blueprint-catalog](https://github.com/pixel-journey/wax-ecosystem-blueprint-catalog)
-> **Benchmark Standard:** henrikpiga/gkniftyheads-tracker (education depth, completeness, dev guidance) + Pixel Journey retro-pixel glassmorphic excellence
+> **Benchmark Standard:** gkniftyheads-tracker quality + Pixel Journey retro-pixel excellence + PX Perfection Standard v1.0
 > **Companion Tool:** [wax-permission-visualizer-and-editor](https://github.com/pixel-journey/wax-permission-visualizer-and-editor) — Use together for visual understanding before rotation
 
 **One-sentence goal:** A guided, ultra-safe key rotation wizard for changing `owner` and `active` keys on WAX/Antelope accounts. Crystal-clear previews, powerful safety warnings, explicit owner/active asymmetry handling, multi-sig requirement checking, and direct WharfKit signing — all client-side with zero custom contracts.
 
 ---
 
-## 1. Overview & Educational Core (Why This Exists)
+## 1. Educational Core — Why Safe Key Rotation Matters
 
-Key rotation is one of the **most dangerous** operations on Antelope chains. A single mistake can permanently lock an account. This blueprint turns that risk into a calm, guided, educational experience.
+Key rotation is one of the **most dangerous** operations on Antelope chains. A single mistake can permanently lock an account with almost no recovery path. This blueprint turns that high-risk operation into a calm, guided, educational experience.
 
-### Critical Antelope Permission Rules (Must Understand)
-- **owner** is supreme: It can change `active` (and in limited cases itself).
-- **active** CANNOT change `owner`. This asymmetry is by design for security.
+### Core Antelope Permission Rules (Critical to Understand)
+
+- **owner** is supreme: It can change `active` (and in limited cases, itself).
+- **active CANNOT change owner**. This asymmetry is fundamental security design.
 - Multi-sig thresholds must be satisfied by the **current** permission when submitting the rotation transaction.
-- Losing the last `owner` key without proper multi-sig setup is usually **irreversible**.
+- Losing the last `owner` key without proper multi-sig backup is usually **irreversible**.
 
-**Common Catastrophic Mistakes This Tool Prevents**:
-- Trying to rotate owner keys using only active permission
-- Removing the last owner key during rotation
-- Forgetting that multi-sig accounts require multiple signatures for the rotation tx
-- Rotating active without realizing it affects linked permissions
+### Why Key Rotation Goes Wrong So Often
 
-**Success Metrics (gkniftyheads-tracker level)**:
-- 100% clear step-by-step flow with zero ambiguity
-- Live before/after preview + risk scoring
-- Strong, contextual safety warnings that actually prevent mistakes
-- Copy-paste integration into any dApp in < 8 minutes
-- 95+ Lighthouse scores
+Most problems happen because developers and users don’t fully internalize the owner/active asymmetry and multi-sig requirements. This tool makes those rules visible and impossible to ignore.
+
+### Common Catastrophic Mistakes This Tool Prevents
+
+| Mistake | Consequence | Why It Happens | How This Tool Prevents It |
+|---------|-------------|----------------|---------------------------|
+| Trying to rotate owner using only active | Transaction fails or is rejected | Misunderstanding of permission hierarchy | Clear enforcement + warnings before every step |
+| Removing the last owner key | Permanent account lock | Panic or incomplete planning | Live preview + explicit "last key" warnings |
+| Forgetting multi-sig requirements | Failed rotation or stuck account | Not checking current thresholds | Multi-sig requirement checker with clear explanation |
+| Rotating active without understanding downstream effects | Linked permissions break | Poor mental model | Live before/after preview using PermissionTree |
+| No backup plan before rotation | Irrecoverable loss | Overconfidence | Step-by-step wizard forces safety checks |
+
+### Learning Outcomes
+
+After using this blueprint, you will be able to:
+- Safely plan and execute owner and active key rotations
+- Understand and respect the owner/active asymmetry
+- Properly handle multi-sig accounts during rotation
+- Use live previews to validate changes before signing
+- Build or integrate safe key rotation flows into your own applications
 
 ---
 
-## 2. Tech Recommendations Matrix (Pros/Cons + Final Choices)
+## 2. Tech Recommendations Matrix
 
 | Component                    | Recommended (Chosen)                     | Alternative A                        | Alternative B                      | Pros of Chosen                              | Cons of Chosen                       | When to Choose Alternative          |
 |------------------------------|------------------------------------------|--------------------------------------|------------------------------------|---------------------------------------------|--------------------------------------|-------------------------------------|
@@ -113,8 +124,6 @@ wax-safe-key-rotation-assistant/
 └── next.config.js
 ```
 
----
-
 ## 5. Core Implementation Highlights
 
 ### 5.1 Types (lib/types.ts)
@@ -145,7 +154,6 @@ export function validateRotation(
   const warnings: ChangeWarning[] = [];
 
   if (targetPerm === 'owner') {
-    // Rule: Only current owner (or its multi-sig) can rotate owner
     warnings.push({
       level: 'warning',
       message: 'This rotation requires the CURRENT owner permission (or its multi-sig) to sign.'
@@ -204,7 +212,8 @@ Direct companions in Tier 1 security foundation:
 ---
 
 ## 10. License & Credits
+
 MIT License — Built for safer key management on WAX and Antelope chains.
 Pixel Journey — Beautiful, safe, educational interfaces for public blockchain data.
 
-*Last updated: July 02, 2026 — Full PX Perfection commit*
+*Last updated: July 02, 2026 — Accelerated Deep Refinement Pass*
