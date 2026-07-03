@@ -10,7 +10,28 @@
 
 ---
 
-## 1. Educational Core — Why Safe Key Rotation Matters
+## Repo Scope & Focus
+
+This repository is designed to be the **definitive educational + interactive hub** for safely performing key rotations on Antelope/WAX accounts.
+
+### Primary Focus Areas
+
+- **Guided, Step-by-Step Wizard** — Clear mental model with live previews at every step.
+- **Strong Safety Engine** — 12+ validation rules with contextual warnings.
+- **Owner vs Active Asymmetry Education** — Makes this critical (and often misunderstood) concept impossible to ignore.
+- **Multi-Sig Handling** — Proper support and education for rotating multi-sig accounts.
+- **Reusable Components** — High-quality, educational React/TypeScript components.
+- **WharfKit Integration** — Real on-chain signing examples.
+
+### What This Repo Does *Not* Aim to Fully Cover
+
+- General permission visualization (see `wax-permission-visualizer-and-editor`)
+- Multi-sig proposal creation (see `wax-multi-sig-proposal-builder-and-simulator`)
+- Batch permission auditing
+
+---
+
+## Educational Core — Why Safe Key Rotation Matters
 
 Key rotation is one of the **most dangerous** operations on Antelope chains. A single mistake can permanently lock an account with almost no recovery path. This blueprint turns that high-risk operation into a calm, guided, educational experience.
 
@@ -43,6 +64,100 @@ After using this blueprint, you will be able to:
 - Properly handle multi-sig accounts during rotation
 - Use live previews to validate changes before signing
 - Build or integrate safe key rotation flows into your own applications
+
+---
+
+## Common Key Rotation Workflows
+
+### 1. Rotating Active Keys (Most Common)
+
+**Goal**: Replace compromised or old active keys without touching owner.
+
+**Recommended Steps**:
+1. Use the visualizer first to understand current structure.
+2. Add new active keys first (never remove old ones immediately).
+3. Verify new keys work with a test transaction.
+4. Only then remove old keys.
+5. Update any linked permissions if needed.
+
+**Tool Support**: The wizard has a dedicated "Active Rotation" flow with live preview.
+
+### 2. Rotating Owner Keys (High Risk)
+
+**Goal**: Rotate the most powerful permission safely.
+
+**Recommended Steps**:
+1. **Never** start owner rotation without a clear backup plan.
+2. Add new owner keys/multi-sig first.
+3. Verify the new structure can control the account.
+4. Only remove old owner keys after full validation.
+5. Consider temporarily increasing multi-sig during transition.
+
+**Tool Support**: Strong warnings + explicit "last owner key" detection.
+
+### 3. Rotating Keys on a Multi-Sig Account
+
+**Goal**: Change keys while maintaining multi-sig protection.
+
+**Recommended Steps**:
+1. Understand current multi-sig thresholds.
+2. Add new keys to the relevant permission.
+3. Ensure the new structure still meets the threshold.
+4. Test with a small transaction before final changes.
+5. Update any off-chain records or team access.
+
+**Tool Support**: Multi-sig requirement checker + live threshold simulation.
+
+---
+
+## Anti-Patterns Specific to Key Rotation
+
+| Anti-Pattern | Risk | Recommendation |
+|--------------|------|----------------|
+| Rotating owner using only active permission | Transaction fails or account becomes harder to recover | Always use current owner (or its multi-sig) for owner changes |
+| Removing all keys from a permission | Account becomes unusable | Always leave at least one valid key with sufficient weight |
+| Ignoring linked permissions during rotation | Smart contracts may break | Review linked permissions before rotating active |
+| No testing before removing old keys | Irreversible mistakes | Always test new keys first |
+| Rotating under time pressure | Mistakes become more likely | Never rotate when stressed or rushed — use the wizard calmly |
+
+---
+
+## Best Practices for Key Rotation
+
+### General Recommendations
+
+1. **Always visualize first** — Use the permission visualizer before any rotation.
+2. **Add before you remove** — Never delete keys until new ones are confirmed working.
+3. **Test thoroughly** — Use small test transactions after changes.
+4. **Document everything** — Keep records of what was changed and why.
+5. **Have a rollback plan** — Know how to recover if something goes wrong.
+6. **Communicate with your team** — Especially important for multi-sig or DAO accounts.
+
+### By Account Type
+
+| Account Type     | Recommended Approach                          | Key Considerations                     |
+|------------------|-----------------------------------------------|----------------------------------------|
+| Personal Account | Simple active rotation with clear backup     | Keep owner extremely safe             |
+| DAO / Multi-sig  | Careful multi-sig aware rotation             | Coordinate with all signers           |
+| Game / dApp      | Rotate active frequently, owner rarely       | Balance security with operational needs |
+| Treasury         | Very conservative owner rotation             | Multiple reviews and simulations      |
+
+---
+
+## Examples Folder
+
+This repository includes a dedicated `/examples` folder with reusable components focused on safe key rotation:
+
+- `KeyRotationWizard.tsx` — Main guided multi-step wizard
+- `PermissionChangePreview.tsx` — Live before/after preview with embedded tree
+- `SafetyWarningPanel.tsx` — Contextual safety warnings
+- `MultiSigRequirementChecker.tsx` — Checks if current multi-sig can perform the rotation
+- `OwnerActiveAsymmetryExplainer.tsx` — Educational component explaining the critical asymmetry
+- `KeyInputForm.tsx` — Reusable form for adding new keys
+- `RotationHistory.tsx` — Track previous rotations (for auditability)
+- `BackupPlanChecker.tsx` — Helps users create a safe backup plan before rotating
+
+These components are designed to be educational and reusable in other projects.
 
 ---
 
@@ -216,4 +331,4 @@ Direct companions in Tier 1 security foundation:
 MIT License — Built for safer key management on WAX and Antelope chains.
 Pixel Journey — Beautiful, safe, educational interfaces for public blockchain data.
 
-*Last updated: July 02, 2026 — Accelerated Deep Refinement Pass*
+*Last updated: July 03, 2026*
