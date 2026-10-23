@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { postRotationChecklist } from '@/lib/checklist';
+import { fetchPermissionGraphSafe } from '@/lib/liveAccount';
 import {
   exportRotationJson,
   exportRotationMarkdown,
@@ -17,11 +19,11 @@ const steps = [
   { id: 2, title: 'Keys', desc: 'Replacement keys' },
   { id: 3, title: 'Review', desc: 'Warnings' },
   { id: 4, title: 'Multi-sig', desc: 'Who must authorize' },
-  { id: 5, title: 'Export', desc: 'Sketch only — no broadcast' },
+  { id: 5, title: 'Export', desc: 'Sketch + checklist' },
 ];
 
 export default function SafeKeyRotationWizard() {
-  const [account, setAccount] = useState('demo');
+  const [account, setAccount] = useState('eosio');
   const [currentPermissions, setCurrentPermissions] = useState<PermissionGraph>(
     () => demoSingleOwnerGraph('demo')
   );
@@ -34,6 +36,7 @@ export default function SafeKeyRotationWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [newKeyInput, setNewKeyInput] = useState('');
   const [status, setStatus] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const graph = useMemo(
     () => ({ ...currentPermissions, account }),
@@ -42,12 +45,33 @@ export default function SafeKeyRotationWizard() {
 
   const warnings = validateRotation(graph, targetPermission, newKeys);
   const multiSigReqs = getMultiSigRequirements(graph, targetPermission);
+  const checklist = postRotationChecklist(targetPermission, newKeys, warnings);
   const dangerCount = warnings.filter((w) => w.level === 'danger').length;
 
   const addKey = () => {
     if (!newKeyInput.trim()) return;
     setNewKeys([...newKeys, { key: newKeyInput.trim(), weight: 1 }]);
     setNewKeyInput('');
+  };
+
+  const setWeight = (index: number, weight: number) => {
+    setNewKeys(
+      newKeys.map((k, i) =>
+        i === index ? { ...k, weight: Number.isFinite(weight) ? weight : 1 } : k
+      )
+    );
+  };
+
+  const loadLive = async () => {
+    setLoading(true);
+    const r = await fetchPermissionGraphSafe(account);
+    setLoading(false);
+    if (!r.ok) {
+      setStatus(`Soft-fail: ${r.reason}`);
+      return;
+    }
+    setCurrentPermissions(r.graph);
+    setStatus(`Loaded live graph from ${r.source}`);
   };
 
   const copy = async (text: string, ok: string) => {
@@ -67,11 +91,11 @@ export default function SafeKeyRotationWizard() {
             SAFE KEY ROTATION
           </div>
           <div className="text-xs opacity-60">
-            Pixel Journey · Passes 1–4 frozen · educational-reference
+            Pixel Journey · Passes 1–7 · educational-reference
           </div>
           <p className="text-xs opacity-50 mt-2 max-w-2xl">
-            Validates proposed owner/active keys only. Prefer WharfKit for any real
-            updateauth. Never paste private keys.
+            Validates proposed keys; optional live get_account. Prefer WharfKit for
+            real updateauth. Never paste private keys.
           </p>
         </div>
 
@@ -98,7 +122,15 @@ export default function SafeKeyRotationWizard() {
             }}
             className="px-3 py-2 text-xs rounded-xl bg-white/10"
           >
-            Reset demo graph
+            Demo graph
+          </button>
+          <button
+            type="button"
+            onClick={loadLive}
+            disabled={loading}
+            className="px-3 py-2 text-xs rounded-xl bg-sky-800 disabled:opacity-50"
+          >
+            {loading ? 'Loading…' : 'Load live get_account'}
           </button>
         </div>
 
@@ -143,7 +175,7 @@ export default function SafeKeyRotationWizard() {
             {currentStep === 2 && (
               <div className="border border-white/10 bg-black/40 p-6 rounded-2xl">
                 <h2 className="text-sm tracking-widest text-emerald-400 mb-4">
-                  STEP 2 · KEYS
+                  STEP 2 · KEYS + WEIGHTS
                 </h2>
                 <div className="flex gap-2 mb-4">
                   <input
@@ -165,12 +197,20 @@ export default function SafeKeyRotationWizard() {
                   {newKeys.map((k, i) => (
                     <li
                       key={`${k.key}-${i}`}
-                      className="flex justify-between bg-black/40 px-3 py-2 rounded-lg"
+                      className="flex flex-wrap items-center gap-2 bg-black/40 px-3 py-2 rounded-lg"
                     >
-                      <span className="truncate">{k.key}</span>
+                      <span className="truncate flex-1 min-w-[8rem]">{k.key}</span>
+                      <label className="opacity-60">w</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={k.weight}
+                        onChange={(e) => setWeight(i, Number(e.target.value))}
+                        className="w-16 bg-black/60 border border-white/10 rounded px-2 py-1"
+                      />
                       <button
                         type="button"
-                        className="text-red-400 shrink-0 ml-2"
+                        className="text-red-400"
                         onClick={() =>
                           setNewKeys(newKeys.filter((_, j) => j !== i))
                         }
@@ -223,14 +263,15 @@ export default function SafeKeyRotationWizard() {
             )}
 
             {currentStep === 5 && (
-              <div className="border border-white/10 bg-black/40 p-6 rounded-2xl space-y-3">
+              <div className="border border-white/10 bg-black/40 p-6 rounded-2xl space-y-4">
                 <h2 className="text-sm tracking-widest text-emerald-400">
-                  STEP 5 · EXPORT SKETCH (NOT SENT)
+                  STEP 5 · EXPORT + CHECKLIST
                 </h2>
-                <p className="text-xs opacity-60">
-                  No wallet connect in this educational build. Copy a plan, then
-                  implement with WharfKit when ready.
-                </p>
+                <ol className="list-decimal pl-5 text-xs space-y-1 text-white/70">
+                  {checklist.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ol>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
@@ -241,8 +282,11 @@ export default function SafeKeyRotationWizard() {
                           targetPermission,
                           newKeys,
                           warnings
-                        ),
-                        'Markdown plan copied'
+                        ) +
+                          '\n## Checklist\n\n' +
+                          checklist.map((c) => `- ${c}`).join('\n') +
+                          '\n',
+                        'Markdown plan + checklist copied'
                       )
                     }
                     className="px-4 py-2 rounded-xl bg-emerald-800 text-sm"
