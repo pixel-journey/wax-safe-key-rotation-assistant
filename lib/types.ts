@@ -12,7 +12,7 @@ export interface AuthAccount {
 
 export interface PermissionNode {
   name: string;
-  parent: string | null;
+  parent?: string | null;
   threshold: number;
   keys: AuthKey[];
   accounts: AuthAccount[];
@@ -20,6 +20,7 @@ export interface PermissionNode {
 
 export interface PermissionGraph {
   account: string;
+  lastUpdated?: string;
   permissions: Record<string, PermissionNode>;
 }
 
@@ -34,12 +35,11 @@ export interface ChangeWarning {
   affectedPermission?: string;
 }
 
-export interface RotationState {
+export interface UpdateAuthSketch {
   account: string;
-  currentPermissions: PermissionGraph | null;
-  targetPermission: "owner" | "active";
-  newKeys: KeyInput[];
-  step: number;
-  warnings: ChangeWarning[];
-  multiSigRequirements: string[];
+  permission: "owner" | "active";
+  parent: string;
+  threshold: number;
+  keys: KeyInput[];
+  note: string;
 }

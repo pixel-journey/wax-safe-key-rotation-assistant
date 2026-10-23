@@ -2,11 +2,9 @@
 
 **Trust label:** educational-reference
 
-This assistant validates **proposed** owner/active key sets. It does **not** sign or broadcast `eosio::updateauth`.
-
-When implementing live rotation:
+This assistant validates **proposed** owner/active key sets and exports educational `updateauth` sketches. It does **not** sign or broadcast.
 
 1. Prefer **[@wharfkit/session](https://docs.wharfkit.com/)** for login and `session.transact`.
-2. Do not start greenfield work on eosjs / UAL / standalone Anchor Link as the primary stack.
-3. Owner changes require owner authority; active cannot elevate to change owner.
-4. Companions: `wax-account-permission-auditor`, `wax-permission-visualizer-and-editor`, `wax-wharfkit-session-keys-and-linked-permissions`.
+2. Avoid eosjs / UAL / standalone Anchor Link as primary greenfield stack.
+3. Owner changes require owner authority; active cannot change owner.
+4. Companions: auditor, permission visualizer, session-keys blueprint.
