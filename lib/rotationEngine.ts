@@ -1,80 +1,173 @@
 /**
- * Pure client-side key rotation safety engine
- * 12+ critical rules for safe owner/active rotation on Antelope
+ * Pure client-side key rotation safety engine (educational).
+ * Does not broadcast updateauth — prefer WharfKit when implementing live flows.
  */
-import { PermissionGraph } from './types';
-import { ChangeWarning, KeyInput } from './types';
+
+import type {
+  ChangeWarning,
+  KeyInput,
+  PermissionGraph,
+} from "./types";
+
+const KEY_HINT =
+  /^(PUB_K1_|PUB_R1_|EOS)[A-Za-z0-9]+$/;
 
 export function validateRotation(
   current: PermissionGraph,
-  targetPerm: 'owner' | 'active',
+  targetPerm: "owner" | "active",
   newKeys: KeyInput[]
 ): ChangeWarning[] {
   const warnings: ChangeWarning[] = [];
+  const ownerPerm = current.permissions.owner;
+  const activePerm = current.permissions.active;
+  const target = current.permissions[targetPerm];
 
-  const ownerPerm = current.permissions['owner'];
-  const activePerm = current.permissions['active'];
+  warnings.push({
+    level: "warning",
+    message:
+      targetPerm === "owner"
+        ? "Rotating owner must be authorized by current owner (or its multi-sig). Active cannot change owner."
+        : "Active rotation is usually authorized by owner or active (depending on hierarchy). Confirm signing permission.",
+    affectedPermission: targetPerm,
+  });
 
-  // Rule 1: Active cannot change owner (fundamental rule)
-  if (targetPerm === 'owner') {
+  if (targetPerm === "owner" && newKeys.length === 0) {
     warnings.push({
-      level: 'warning',
-      message: 'CRITICAL: Rotating owner requires the CURRENT owner permission (or its multi-sig) to authorize. Active cannot do this.',
-      affectedPermission: 'owner',
+      level: "danger",
+      message:
+        "Removing ALL owner keys is usually irreversible without a prior multi-sig recovery path.",
+      affectedPermission: "owner",
     });
   }
 
-  // Rule 2: Never remove the last owner key without warning
-  if (targetPerm === 'owner' && newKeys.length === 0) {
+  if (
+    targetPerm === "active" &&
+    newKeys.length === 0 &&
+    (activePerm?.keys.length ?? 0) > 0
+  ) {
     warnings.push({
-      level: 'danger',
-      message: 'DANGER: You are about to remove ALL owner keys. This is usually irreversible without prior multi-sig setup.',
-      affectedPermission: 'owner',
+      level: "danger",
+      message:
+        "Removing ALL active keys may block routine dApp actions until owner restores active.",
+      affectedPermission: "active",
     });
   }
 
-  // Rule 3: Active rotation with zero new keys
-  if (targetPerm === 'active' && newKeys.length === 0 && activePerm.keys.length > 0) {
+  const totalNewWeight = newKeys.reduce((s, k) => s + k.weight, 0);
+  const threshold = target?.threshold ?? 1;
+  if (newKeys.length > 0 && totalNewWeight < threshold) {
     warnings.push({
-      level: 'danger',
-      message: 'You are removing ALL active keys. The account may become unusable for normal actions.',
-      affectedPermission: 'active',
+      level: "danger",
+      message: `New ${targetPerm} keys total weight (${totalNewWeight}) is below threshold (${threshold}) — authority may be unsatisfiable.`,
+      affectedPermission: targetPerm,
     });
   }
 
-  // Rule 4: Multi-sig threshold check (simplified)
-  const totalNewWeight = newKeys.reduce((sum, k) => sum + k.weight, 0);
-  if (targetPerm === 'owner' && totalNewWeight < (ownerPerm?.threshold || 1)) {
+  if (newKeys.length === 1 && threshold === 1) {
     warnings.push({
-      level: 'warning',
-      message: `New owner keys total weight (${totalNewWeight}) may be below current threshold. Multi-sig may be required.`,
+      level: "warning",
+      message: `Single-key ${targetPerm} with threshold 1 is a single point of failure.`,
+      affectedPermission: targetPerm,
     });
   }
 
-  // Additional 8+ rules can be expanded here (full production version in repo)
-  // - Check if new keys already exist
-  // - Validate key format (EOS... / PUB_K1...)
-  // - Warn on lowering threshold significantly
-  // - Multi-sig compatibility checks
+  for (const k of newKeys) {
+    if (!k.key.trim()) {
+      warnings.push({
+        level: "danger",
+        message: "Empty public key in proposal.",
+        affectedPermission: targetPerm,
+      });
+    } else if (!KEY_HINT.test(k.key.trim())) {
+      warnings.push({
+        level: "warning",
+        message: `Key format looks unusual: ${k.key.slice(0, 24)}… (expected PUB_K1_ / PUB_R1_ / EOS…).`,
+        affectedPermission: targetPerm,
+      });
+    }
+    if (k.weight <= 0) {
+      warnings.push({
+        level: "danger",
+        message: `Key ${k.key.slice(0, 12)}… has non-positive weight.`,
+        affectedPermission: targetPerm,
+      });
+    }
+  }
+
+  const existing = new Set((target?.keys ?? []).map((x) => x.key));
+  for (const k of newKeys) {
+    if (existing.has(k.key)) {
+      warnings.push({
+        level: "warning",
+        message: `Key already present on ${targetPerm}: ${k.key.slice(0, 16)}…`,
+        affectedPermission: targetPerm,
+      });
+    }
+  }
+
+  if (ownerPerm && targetPerm === "active") {
+    const ownerKeys = new Set(ownerPerm.keys.map((k) => k.key));
+    for (const k of newKeys) {
+      if (ownerKeys.has(k.key)) {
+        warnings.push({
+          level: "warning",
+          message:
+            "Reusing an owner key on active increases blast radius if the hot key is compromised.",
+          affectedPermission: "active",
+        });
+      }
+    }
+  }
+
+  warnings.push({
+    level: "safe",
+    message:
+      "Educational check only — does not broadcast. Prefer WharfKit session.transact for real updateauth.",
+  });
 
   return warnings;
 }
 
 export function getMultiSigRequirements(
   current: PermissionGraph,
-  targetPerm: 'owner' | 'active'
+  targetPerm: "owner" | "active"
 ): string[] {
   const perm = current.permissions[targetPerm];
-  if (!perm) return [];
+  if (!perm) return [`${targetPerm} permission missing from snapshot`];
 
   const requirements: string[] = [];
-  if (perm.keys.length > 0) {
-    requirements.push(`${perm.keys.length} key(s) from current ${targetPerm} permission`);
+  requirements.push(
+    `Threshold ${perm.threshold}; current keys ${perm.keys.length}; accounts ${perm.accounts.length}`
+  );
+  for (const k of perm.keys) {
+    requirements.push(`key weight ${k.weight}: ${k.key.slice(0, 20)}…`);
   }
-  if (perm.accounts.length > 0) {
-    perm.accounts.forEach(acc => {
-      requirements.push(`${acc.permission.actor}@${acc.permission.permission}`);
-    });
+  for (const acc of perm.accounts) {
+    requirements.push(
+      `${acc.permission.actor}@${acc.permission.permission} (weight ${acc.weight})`
+    );
   }
   return requirements;
+}
+
+export function demoSingleOwnerGraph(account = "demo"): PermissionGraph {
+  return {
+    account,
+    permissions: {
+      owner: {
+        name: "owner",
+        parent: null,
+        threshold: 1,
+        keys: [{ key: "PUB_K1_oldowner", weight: 1 }],
+        accounts: [],
+      },
+      active: {
+        name: "active",
+        parent: "owner",
+        threshold: 1,
+        keys: [{ key: "PUB_K1_oldactive", weight: 1 }],
+        accounts: [],
+      },
+    },
+  };
 }
