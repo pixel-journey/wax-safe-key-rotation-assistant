@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { RelatedBlueprints } from '@/examples/RelatedBlueprints';
 import { postRotationChecklist } from '@/lib/checklist';
 import { fetchPermissionGraphSafe } from '@/lib/liveAccount';
+import { ROTATION_MYTHS } from '@/lib/myths';
 import {
   exportRotationJson,
   exportRotationMarkdown,
@@ -12,6 +14,7 @@ import {
   getMultiSigRequirements,
   validateRotation,
 } from '@/lib/rotationEngine';
+import { DEFAULT_RPC_URL, RPC_ENDPOINTS } from '@/lib/rpcEndpoints';
 import type { PermissionGraph } from '@/lib/types';
 
 const steps = [
@@ -24,6 +27,7 @@ const steps = [
 
 export default function SafeKeyRotationWizard() {
   const [account, setAccount] = useState('eosio');
+  const [rpcUrl, setRpcUrl] = useState(DEFAULT_RPC_URL);
   const [currentPermissions, setCurrentPermissions] = useState<PermissionGraph>(
     () => demoSingleOwnerGraph('demo')
   );
@@ -64,10 +68,10 @@ export default function SafeKeyRotationWizard() {
 
   const loadLive = async () => {
     setLoading(true);
-    const r = await fetchPermissionGraphSafe(account);
+    const r = await fetchPermissionGraphSafe(account, rpcUrl);
     setLoading(false);
     if (!r.ok) {
-      setStatus(`Soft-fail: ${r.reason}`);
+      setStatus(`Soft-fail (${new URL(rpcUrl).hostname}): ${r.reason}`);
       return;
     }
     setCurrentPermissions(r.graph);
@@ -91,7 +95,7 @@ export default function SafeKeyRotationWizard() {
             SAFE KEY ROTATION
           </div>
           <div className="text-xs opacity-60">
-            Pixel Journey · Passes 1–7 · educational-reference
+            Pixel Journey · Pass 8 · educational-reference
           </div>
           <p className="text-xs opacity-50 mt-2 max-w-2xl">
             Validates proposed keys; optional live get_account. Prefer WharfKit for
@@ -99,7 +103,26 @@ export default function SafeKeyRotationWizard() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-6">
+        <section
+          className="rounded-2xl border border-fuchsia-500/25 bg-fuchsia-500/5 p-4 text-xs space-y-3 max-w-2xl mb-6"
+          aria-label="Myths"
+        >
+          <h2 className="text-sm font-semibold text-fuchsia-100">Myths vs reality</h2>
+          {ROTATION_MYTHS.map((m) => (
+            <div key={m.myth}>
+              <p className="text-red-200/90">
+                <span className="opacity-60">Myth: </span>
+                {m.myth}
+              </p>
+              <p className="text-emerald-100/90 mt-0.5">
+                <span className="opacity-60">Reality: </span>
+                {m.reality}
+              </p>
+            </div>
+          ))}
+        </section>
+
+        <div className="flex flex-wrap gap-2 mb-4 items-center">
           {steps.map((step) => (
             <button
               key={step.id}
@@ -124,6 +147,20 @@ export default function SafeKeyRotationWizard() {
           >
             Demo graph
           </button>
+          <label className="flex items-center gap-2 text-xs opacity-80">
+            RPC
+            <select
+              value={rpcUrl}
+              onChange={(e) => setRpcUrl(e.target.value)}
+              className="bg-black/60 border border-white/10 px-2 py-2 rounded-xl font-mono text-xs"
+            >
+              {RPC_ENDPOINTS.map((e) => (
+                <option key={e.id} value={e.url}>
+                  {e.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             onClick={loadLive}
@@ -351,6 +388,8 @@ export default function SafeKeyRotationWizard() {
             Next
           </button>
         </div>
+
+        <RelatedBlueprints />
       </div>
     </div>
   );

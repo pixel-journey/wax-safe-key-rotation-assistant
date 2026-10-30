@@ -1,16 +1,9 @@
 # Verification Log
 
-**Trust label:** educational-reference  
-**Updated:** 2026-10-23 (Passes 5–7 post-freeze)
+**Updated:** 2026-10-30 (Pass 8)
 
 | Claim | Status |
-|-------|--------|
-| validateRotation / sketch / checklist | **verified** (unit) |
-| Soft-fail get_account | code present |
-| updateauth broadcast | **not claimed** |
-
-Formal freeze remains Pass 1–4; 5–7 add live load, weights, checklist.
-
-```bash
-npm install && npm test
-```
+| --- | --- |
+| validateRotation | unit |
+| Live get_account | soft-fail multi-RPC |
+| Auto updateauth | out of scope |
