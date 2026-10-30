@@ -1,24 +1,27 @@
 # Policy — safe key rotation assistant
 
 **Trust label:** `educational-reference`  
-**Pass:** 9 (2026-10-30)
+**Scope frozen:** Pass 10 (2026-10-30)
 
 ## In scope
 
-- Guided wizard for proposing owner/active key sets
-- Pure `validateRotation` warnings
+- Guided 5-step wizard (select · keys · review · multi-sig surface · export)
+- Pure `validateRotation` (owner/active asymmetry, empty sets, weight vs threshold, SPF, format hints)
 - Soft-fail multi-RPC `get_account`
-- MD/JSON export + post-rotation checklist
-- Educational myths and demos (single-owner, social multi-party)
+- Demos: single-owner · social 2-of-3 owner
+- MD/JSON copy + download · post-rotation checklist
+- Share `?a=` · myths · related blueprints
 
-## Out of scope
+## Out of scope (by design)
 
-- Auto-broadcast `updateauth`
-- Full msig propose/approve/exec lifecycle → multi-sig blueprint
-- Interactive permission tree → visualizer
+- Auto-broadcast `updateauth` / `deleteauth`
+- Full eosio.msig propose → approve → exec lifecycle → `wax-multi-sig-proposal-builder-and-simulator`
+- Interactive permission tree / threshold lab → `wax-permission-visualizer-and-editor`
+- Batch account risk scoring → `wax-account-permission-auditor`
 
-## Rules
+## Hard rules
 
-- Never collect private keys / seeds
+- Never collect private keys or seeds
 - Prefer **WharfKit** for intentional live signing
 - Active cannot change owner — always surface this asymmetry
+- Add and verify new weights before removing old ones

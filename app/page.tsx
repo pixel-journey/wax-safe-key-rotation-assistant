@@ -126,13 +126,24 @@ export default function SafeKeyRotationWizard() {
             SAFE KEY ROTATION
           </div>
           <div className="text-xs opacity-60">
-            Pixel Journey · Pass 9 · educational-reference
+            Pixel Journey · Passes 1–10 frozen · educational-reference
           </div>
           <p className="text-xs opacity-50 mt-2 max-w-2xl">
             Validates proposed keys; optional live get_account. Prefer WharfKit for
             real updateauth. Never paste private keys.
           </p>
         </div>
+
+        <section
+          className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-100/90 space-y-1 max-w-2xl mb-6"
+          role="note"
+        >
+          <p className="font-medium text-sm">Scope frozen (Pass 10)</p>
+          <p>
+            Planning + validation only — no auto <code>updateauth</code>. Active cannot
+            change owner. See POLICY.md.
+          </p>
+        </section>
 
         <section
           className="rounded-2xl border border-fuchsia-500/25 bg-fuchsia-500/5 p-4 text-xs space-y-3 max-w-2xl mb-6"
