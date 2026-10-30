@@ -1,9 +1,9 @@
-# Through Pass 8
+# Through Pass 9
 
 | Pass | Scope |
 |------|--------|
-| 1–7 | Engine, live, weights, checklist |
-| **8** | Multi-RPC, myths, related blueprints |
+| 8 | Multi-RPC, myths |
+| **9** | Share URL, social demo, POLICY, downloads |
 
 ```bash
 npm install && npm test

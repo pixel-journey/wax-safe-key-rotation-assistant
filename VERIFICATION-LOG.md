@@ -1,9 +1,9 @@
 # Verification Log
 
-**Updated:** 2026-10-30 (Pass 8)
+**Updated:** 2026-10-30 (Pass 9)
 
 | Claim | Status |
 | --- | --- |
-| validateRotation | unit |
-| Live get_account | soft-fail multi-RPC |
+| shareUrl | unit |
+| Social demo | present |
 | Auto updateauth | out of scope |

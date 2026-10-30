@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { RelatedBlueprints } from '@/examples/RelatedBlueprints';
 import { postRotationChecklist } from '@/lib/checklist';
+import { downloadTextFile } from '@/lib/download';
 import { fetchPermissionGraphSafe } from '@/lib/liveAccount';
 import { ROTATION_MYTHS } from '@/lib/myths';
 import {
@@ -11,10 +12,15 @@ import {
 } from '@/lib/proposalSketch';
 import {
   demoSingleOwnerGraph,
+  demoSocialOwnerGraph,
   getMultiSigRequirements,
   validateRotation,
 } from '@/lib/rotationEngine';
 import { DEFAULT_RPC_URL, RPC_ENDPOINTS } from '@/lib/rpcEndpoints';
+import {
+  buildAccountShareParam,
+  readAccountFromSearch,
+} from '@/lib/shareUrl';
 import type { PermissionGraph } from '@/lib/types';
 
 const steps = [
@@ -41,6 +47,16 @@ export default function SafeKeyRotationWizard() {
   const [newKeyInput, setNewKeyInput] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const shared = readAccountFromSearch(window.location.search);
+    if (shared) {
+      setAccount(shared);
+      setStatus(`Account from share URL: ${shared}`);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const graph = useMemo(
     () => ({ ...currentPermissions, account }),
@@ -87,6 +103,21 @@ export default function SafeKeyRotationWizard() {
     }
   };
 
+  const copyShare = async () => {
+    const param = buildAccountShareParam(account);
+    const url =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}${window.location.pathname}?${param}`
+        : `?${param}`;
+    await copy(url, 'Share URL copied');
+  };
+
+  const mdExport =
+    exportRotationMarkdown(graph, targetPermission, newKeys, warnings) +
+    '\n## Checklist\n\n' +
+    checklist.map((c) => `- ${c}`).join('\n') +
+    '\n';
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
       <div className="max-w-6xl mx-auto">
@@ -95,7 +126,7 @@ export default function SafeKeyRotationWizard() {
             SAFE KEY ROTATION
           </div>
           <div className="text-xs opacity-60">
-            Pixel Journey · Pass 8 · educational-reference
+            Pixel Journey · Pass 9 · educational-reference
           </div>
           <p className="text-xs opacity-50 mt-2 max-w-2xl">
             Validates proposed keys; optional live get_account. Prefer WharfKit for
@@ -145,7 +176,18 @@ export default function SafeKeyRotationWizard() {
             }}
             className="px-3 py-2 text-xs rounded-xl bg-white/10"
           >
-            Demo graph
+            Demo single
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentPermissions(demoSocialOwnerGraph(account || 'alice.wam'));
+              setTargetPermission('owner');
+              setStatus('Loaded social 2-of-3 owner demo');
+            }}
+            className="px-3 py-2 text-xs rounded-xl bg-cyan-900/50"
+          >
+            Demo social owner
           </button>
           <label className="flex items-center gap-2 text-xs opacity-80">
             RPC
@@ -168,6 +210,13 @@ export default function SafeKeyRotationWizard() {
             className="px-3 py-2 text-xs rounded-xl bg-sky-800 disabled:opacity-50"
           >
             {loading ? 'Loading…' : 'Load live get_account'}
+          </button>
+          <button
+            type="button"
+            onClick={() => void copyShare()}
+            className="px-3 py-2 text-xs rounded-xl bg-teal-800"
+          >
+            Copy share URL
           </button>
         </div>
 
@@ -312,20 +361,7 @@ export default function SafeKeyRotationWizard() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() =>
-                      copy(
-                        exportRotationMarkdown(
-                          graph,
-                          targetPermission,
-                          newKeys,
-                          warnings
-                        ) +
-                          '\n## Checklist\n\n' +
-                          checklist.map((c) => `- ${c}`).join('\n') +
-                          '\n',
-                        'Markdown plan + checklist copied'
-                      )
-                    }
+                    onClick={() => copy(mdExport, 'Markdown plan + checklist copied')}
                     className="px-4 py-2 rounded-xl bg-emerald-800 text-sm"
                   >
                     Copy MD
@@ -346,6 +382,39 @@ export default function SafeKeyRotationWizard() {
                     className="px-4 py-2 rounded-xl bg-sky-900 text-sm"
                   >
                     Copy JSON
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      downloadTextFile(
+                        `${account}-rotation-plan.md`,
+                        mdExport,
+                        'text/markdown;charset=utf-8'
+                      );
+                      setStatus('Plan MD downloaded');
+                    }}
+                    className="px-4 py-2 rounded-xl bg-teal-900 text-sm"
+                  >
+                    Download MD
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      downloadTextFile(
+                        `${account}-rotation-plan.json`,
+                        exportRotationJson(
+                          graph,
+                          targetPermission,
+                          newKeys,
+                          warnings
+                        ),
+                        'application/json'
+                      );
+                      setStatus('Plan JSON downloaded');
+                    }}
+                    className="px-4 py-2 rounded-xl bg-teal-950 text-sm"
+                  >
+                    Download JSON
                   </button>
                 </div>
               </div>
