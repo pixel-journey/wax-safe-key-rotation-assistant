@@ -1,7 +1,9 @@
 # Education — safe key rotation (planning only)
 
 > **Rung:** `npm test` passes. This plans a rotation. It does not broadcast `updateauth` and it must never ask for a private key.  
-> **The test is the rule.** Official model: [WAX permissions](https://docs.wax.io/build/core-concepts/permissions). Recovery habits: [Security and recovery](https://docs.wax.io/learn/getting-started/security-and-recovery).
+> **The test is the rule.** Official: [WAX permissions](https://docs.wax.io/build/core-concepts/permissions) · [Security and recovery](https://docs.wax.io/learn/getting-started/security-and-recovery).
+
+Antelope authorization is a **permission hierarchy**. The persistent risk is a bad `updateauth` on **owner** — not ERC-20 infinite approvals.
 
 ## Learning outcomes
 
@@ -45,6 +47,7 @@ A bad `updateauth` on **owner** can permanently lock an account. This blueprint 
 | Drop below threshold | `below threshold` |
 | Collect private key in UI | forbidden |
 | Broadcast from unit tests | never |
+| Remove-first without adding | unsafe sequence |
 
 ---
 
@@ -67,13 +70,14 @@ A bad `updateauth` on **owner** can permanently lock an account. This blueprint 
 | Hardware cold owner | hardware-wallet-integration-patterns |
 | msig lifecycle | multi-sig-proposal-builder |
 
-Prefer **WharfKit** over eosjs / Anchor Link for greenfield signing.
+Prefer **WharfKit SessionKit** for live authority changes — not eosjs / Anchor Link for greenfield.
 
 ### Exercises
 
 1. Can `active` change `owner`? (**No**.)  
 2. Remove-first or add-first? (**Add-first**.)  
-3. Does this broadcast? (**No**.)
+3. Does this broadcast? (**No**.)  
+4. Is "revoke infinite approvals" the Antelope rotation step? (**No**.)
 
 ---
 
