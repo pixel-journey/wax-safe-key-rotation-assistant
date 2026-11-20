@@ -1,5 +1,16 @@
 # Safe key rotation (educational)
 
+> **Rung:** `npm test` passes. This plans a rotation. It does not broadcast `updateauth` and it must never ask for a private key.  
+> **The test is the rule.** Official model: [WAX permissions](https://docs.wax.io/build/core-concepts/permissions). Recovery habits: [Security and recovery](https://docs.wax.io/learn/getting-started/security-and-recovery).
+
+## Predict, then run
+
+| Call | Locked result |
+| --- | --- |
+| `validateRotation(demo, "owner", [])` | a warning at level `danger` |
+| owner threshold 2, one key of weight 1 | a message containing `below threshold` |
+| `getMultiSigRequirements(demo, "owner")` | a non-empty list |
+
 ## Why this is high risk
 
 A bad `updateauth` on **owner** can permanently lock an account. This blueprint is a **planning and validation** surface — not an auto-rotator.

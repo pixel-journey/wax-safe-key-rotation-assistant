@@ -15,6 +15,8 @@ npm install && npm test && npm run dev
 
 [EDUCATION.md](./EDUCATION.md) · [POLICY.md](./POLICY.md) · [WHARFKIT.md](./WHARFKIT.md)
 
-Companions: [visualizer](https://github.com/pixel-journey/wax-permission-visualizer-and-editor) · [auditor](https://github.com/pixel-journey/wax-account-permission-auditor)
+Companions: [visualizer](https://github.com/pixel-journey/wax-permission-visualizer-and-editor) · [auditor](https://github.com/pixel-journey/wax-account-permission-auditor) · [session keys](https://github.com/pixel-journey/wax-wharfkit-session-keys-and-linked-permissions)
+
+Official: [WAX permissions](https://docs.wax.io/build/core-concepts/permissions) · [Security and recovery](https://docs.wax.io/learn/getting-started/security-and-recovery). Never paste a private key. Social recovery, multisig, and hardware-wallet repos stay private.
 
 MIT — Pixel Journey
